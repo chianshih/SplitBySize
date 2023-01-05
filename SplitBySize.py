@@ -3,6 +3,7 @@ from os.path import isfile, join, exists
 import argparse
 import shutil
 import PIL.Image
+import random
 
 def SortBySize(myPath):
     if(exists(join(myPath,"_dataset"))==True): shutil.rmtree(join(myPath,"_dataset"))
@@ -22,14 +23,19 @@ def SortBySize(myPath):
     return myList, classes
 
 def splitData(myList,trainPer,validPer):
-    base = 20
+    base = 30
     trainPath,validPath,testPath = [], [], []
-    train = trainPer*base/100
-    valid = validPer*base/100
-    for i,[_,f] in enumerate(myList):
-        if i % base < train: trainPath.append(f)
-        elif i % base < valid+train: validPath.append(f)
-        else: testPath.append(f)
+    start = 0
+    train = trainPer*base//100
+    valid = validPer*base//100
+    for i in range(base,len(myList),base):
+        tmpList = myList[start:i]
+        random.shuffle(tmpList)
+        for j,[_,f] in enumerate(tmpList):
+            if j % base < train: trainPath.append(f)
+            elif j % base < valid+train: validPath.append(f)
+            else: testPath.append(f)
+        start = i
     return trainPath, validPath, testPath
 
 def createDataset(targetPath, classes, trainPath, validPath, testPath):
@@ -52,9 +58,9 @@ def createDataset(targetPath, classes, trainPath, validPath, testPath):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--Path', type=str, default= "../_dataset/Win_2nd", help='initial weights path')
-    parser.add_argument('--Train', type=int, default=80, help='Train Percentage')
-    parser.add_argument('--Valid', type=int, default=10, help='Valid Percentage')
+    parser.add_argument('--Path', type=str, default= r"C:\Users\USER\Desktop\FATP\Ai_Training\_dataset\Win_2nd", help='initial weights path')
+    parser.add_argument('--Train', type=int, default=75, help='Train Percentage')
+    parser.add_argument('--Valid', type=int, default=20, help='Valid Percentage')
     split_arg = parser.parse_args()
     res, classes = SortBySize(split_arg.Path)
     trainPath, validPath, testPath = splitData(res,split_arg.Train,split_arg.Valid)
