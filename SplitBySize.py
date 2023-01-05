@@ -15,25 +15,24 @@ def SortBySize(myPath):
         for f in images:
             f = join(myPath, Class, f)
             if isfile(f):
-                img = PIL.Image.open(f)
+                img = PIL.Image.open(f,mode="r")
                 size = img.height*img.width
                 tmpList.append([size,f])
-        tmpList.sort()
         myList+=tmpList
+    myList.sort()
     return myList, classes
 
-def splitData(myList,trainPer,validPer):
-    base = 30
+def splitData(myList,trainPer,validPer,batch):
     trainPath,validPath,testPath = [], [], []
     start = 0
-    train = trainPer*base//100
-    valid = validPer*base//100
-    for i in range(base,len(myList),base):
+    train = trainPer*batch//100
+    valid = validPer*batch//100
+    for i in range(batch,len(myList),batch):
         tmpList = myList[start:i]
         random.shuffle(tmpList)
         for j,[_,f] in enumerate(tmpList):
-            if j % base < train: trainPath.append(f)
-            elif j % base < valid+train: validPath.append(f)
+            if j % batch < train: trainPath.append(f)
+            elif j % batch < valid+train: validPath.append(f)
             else: testPath.append(f)
         start = i
     return trainPath, validPath, testPath
@@ -61,8 +60,9 @@ if __name__ == '__main__':
     parser.add_argument('--Path', type=str, default= r"C:\Users\USER\Desktop\FATP\Ai_Training\_dataset\Win_2nd", help='initial weights path')
     parser.add_argument('--Train', type=int, default=75, help='Train Percentage')
     parser.add_argument('--Valid', type=int, default=20, help='Valid Percentage')
+    parser.add_argument('--Batch', type=int, default=20, help='Batch size while spliting datas by image size')
     split_arg = parser.parse_args()
     res, classes = SortBySize(split_arg.Path)
-    trainPath, validPath, testPath = splitData(res,split_arg.Train,split_arg.Valid)
+    trainPath, validPath, testPath = splitData(res,split_arg.Train,split_arg.Valid, split_arg.Batch)
     createDataset(split_arg.Path, classes,trainPath, validPath, testPath)
     
